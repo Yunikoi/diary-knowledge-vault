@@ -1,0 +1,6 @@
+/* global reset lives lightly; layout styles in App.css */
+button,
+input,
+textarea {
+  font: inherit;
+}
