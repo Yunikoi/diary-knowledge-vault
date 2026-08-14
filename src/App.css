@@ -165,16 +165,25 @@ body {
 
 .knowledge-list .knowledge-row {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 4px;
+  align-items: center;
+}
+
+.diary-list .diary-row {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 4px;
   align-items: center;
 }
 
-.knowledge-list .knowledge-row > button:first-child {
+.knowledge-list .knowledge-row > button:first-child,
+.diary-list .diary-row > button:first-child {
   min-width: 0;
 }
 
-.delete-knowledge {
+.delete-knowledge,
+.rename-note {
   width: 28px !important;
   height: 28px;
   padding: 0 !important;
@@ -188,7 +197,11 @@ body {
 }
 
 .knowledge-row:hover .delete-knowledge,
-.knowledge-row:focus-within .delete-knowledge {
+.knowledge-row:focus-within .delete-knowledge,
+.knowledge-row:hover .rename-note,
+.knowledge-row:focus-within .rename-note,
+.diary-row:hover .rename-note,
+.diary-row:focus-within .rename-note {
   opacity: 1;
 }
 
@@ -198,17 +211,36 @@ body {
   color: #a33b2b !important;
 }
 
-.toolbar-delete {
-  border: 1px solid #e2b0a8 !important;
-  background: #fff !important;
-  color: #a33b2b !important;
+.rename-note:hover {
+  background: #e8eef8 !important;
+  border-color: #a8b8d8 !important;
+  color: #2b4a8a !important;
+}
+
+.toolbar-delete,
+.toolbar-rename {
   border-radius: 8px;
   padding: 6px 10px;
   cursor: pointer;
+  background: #fff !important;
+}
+
+.toolbar-delete {
+  border: 1px solid #e2b0a8 !important;
+  color: #a33b2b !important;
 }
 
 .toolbar-delete:hover {
   background: #f8e4e0 !important;
+}
+
+.toolbar-rename {
+  border: 1px solid #a8b8d8 !important;
+  color: #2b4a8a !important;
+}
+
+.toolbar-rename:hover {
+  background: #e8eef8 !important;
 }
 
 .main {

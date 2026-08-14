@@ -255,6 +255,81 @@ app.put('/api/note/:kind/:name', async (req, res) => {
   }
 })
 
+function sanitizeName(raw) {
+  return String(raw || '')
+    .trim()
+    .replace(/\.md$/i, '')
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '')
+    .trim()
+}
+
+/** Rewrite [[old]] / [[old|alias]] → [[new]] / [[new|alias]] in note body. */
+function rewriteWikiLinks(content, fromTitle, toTitle) {
+  if (!fromTitle || fromTitle === toTitle) return content
+  const esc = fromTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const re = new RegExp(`\\[\\[${esc}(\\|[^\\]]*)?\\]\\]`, 'g')
+  return content.replace(re, (_m, alias) => `[[${toTitle}${alias || ''}]]`)
+}
+
+// Register before /api/note and /api/note/:kind/:name
+app.post('/api/note/rename', async (req, res) => {
+  try {
+    const kind = req.body.kind
+    const from = sanitizeName(req.body.from || req.body.name)
+    const to = sanitizeName(req.body.to || req.body.newName)
+    if (!['diary', 'knowledge'].includes(kind)) {
+      return res.status(400).json({ error: 'invalid kind' })
+    }
+    if (!from || !to) return res.status(400).json({ error: 'from/to required' })
+    if (from === to) return res.json({ ok: true, kind, name: to, title: to })
+
+    const src = safeJoin(kind, from)
+    const dest = safeJoin(kind, to)
+    try {
+      await fs.access(src.full)
+    } catch {
+      return res.status(404).json({ error: 'source not found' })
+    }
+    try {
+      await fs.access(dest.full)
+      return res.status(409).json({ error: 'already exists', name: to })
+    } catch {
+      /* free */
+    }
+
+    const raw = await fs.readFile(src.full, 'utf8')
+    const parsed = matter(raw)
+    const oldTitle = asTitle(parsed.data.title, from)
+    const extra = { ...parsed.data }
+    delete extra.title
+    const body = rewriteWikiLinks(parsed.content, oldTitle, to)
+    await fs.writeFile(dest.full, dumpNote(to, body, extra), 'utf8')
+    await fs.unlink(src.full)
+
+    for (const k of ['diary', 'knowledge']) {
+      const dir = path.join(VAULT, k)
+      const files = (await fs.readdir(dir)).filter((f) => f.endsWith('.md'))
+      for (const f of files) {
+        if (k === kind && f === dest.base) continue
+        const full = path.join(dir, f)
+        const text = await fs.readFile(full, 'utf8')
+        const p = matter(text)
+        let next = rewriteWikiLinks(p.content, oldTitle, to)
+        if (oldTitle !== from) next = rewriteWikiLinks(next, from, to)
+        if (next === p.content) continue
+        const fm = { ...p.data }
+        const t = asTitle(fm.title, f.replace(/\.md$/i, ''))
+        delete fm.title
+        await fs.writeFile(full, dumpNote(t, next, fm), 'utf8')
+      }
+    }
+
+    res.json({ ok: true, kind, name: to, title: to, from })
+  } catch (e) {
+    res.status(500).json({ error: String(e.message || e) })
+  }
+})
+
 app.post('/api/note', async (req, res) => {
   try {
     const kind = req.body.kind
@@ -274,7 +349,6 @@ app.post('/api/note', async (req, res) => {
 
     let body = req.body.content
     if (typeof body === 'string' && body.length) {
-      // Allow importing raw md (with or without frontmatter)
       const parsed = matter(body)
       const fmTitle = asTitle(parsed.data.title, title)
       const content = parsed.content.trim()

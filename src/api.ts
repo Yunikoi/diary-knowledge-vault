@@ -55,6 +55,12 @@ export const api = {
     json<{ ok: boolean }>(`/note/${kind}/${encodeURIComponent(name)}`, {
       method: 'DELETE',
     }),
+  renameNote: (kind: 'diary' | 'knowledge', from: string, to: string) =>
+    json<{ ok: boolean; name: string; title: string }>('/note/rename', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind, from, to }),
+    }),
   uploadStickyImage: (dataUrl: string, id?: string) =>
     json<{ ok: boolean; url: string; width: number; height: number }>(
       '/sticky-image',

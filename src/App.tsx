@@ -217,6 +217,59 @@ export default function App() {
     }
   }
 
+  const renameNote = async (
+    kind: 'diary' | 'knowledge',
+    from: string,
+    currentTitle?: string,
+  ) => {
+    const isOpen = sel?.kind === kind && sel.name === from
+    const h1 = isOpen ? content.match(/^#\s+(.+)$/m)?.[1]?.trim() : undefined
+    let suggested = currentTitle || from
+    if (kind === 'diary' && h1 && h1 !== from && !from.includes(h1)) {
+      // keep date prefix if present
+      const datePrefix = from.match(/^\d{4}-\d{2}-\d{2}/)?.[0]
+      suggested = datePrefix ? `${datePrefix}-${h1}` : h1
+    }
+    const next = window.prompt(
+      `重命名${kind === 'diary' ? '日记' : '知识'}文件（不含 .md）\n当前：${from}`,
+      suggested,
+    )
+    if (next == null) return
+    const to = next.trim().replace(/\.md$/i, '')
+    if (!to) {
+      window.alert('文件名不能为空')
+      return
+    }
+    if (to === from) {
+      window.alert('文件名未变化')
+      return
+    }
+    try {
+      if (dirty && isOpen) {
+        await api.saveNote(kind, from, content, note?.title, stickiesRef.current)
+        setDirty(false)
+      }
+      const r = await api.renameNote(kind, from, to)
+      const t = await api.tree()
+      setDiary(t.diary)
+      setKnowledge(t.knowledge)
+      await openNote(kind, r.name)
+      setStatus(`已重命名为 ${r.name}.md`)
+      window.alert(`重命名成功：\n${from}.md\n→ ${r.name}.md`)
+    } catch (e) {
+      const msg = (e as Error).message || String(e)
+      setStatus(`重命名失败: ${msg}`)
+      window.alert(`重命名失败：${msg}\n请刷新页面后重试。`)
+      try {
+        const t = await api.tree()
+        setDiary(t.diary)
+        setKnowledge(t.knowledge)
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
   const insertLink = (title: string) => {
     editorRef.current?.insertWikiLink(title)
   }
@@ -259,9 +312,9 @@ export default function App() {
               +
             </button>
           </div>
-          <ul>
+          <ul className="diary-list">
             {filter(diary).map((n) => (
-              <li key={n.name}>
+              <li key={n.name} className="diary-row">
                 <button
                   type="button"
                   className={sel?.kind === 'diary' && sel.name === n.name ? 'active' : ''}
@@ -269,6 +322,17 @@ export default function App() {
                 >
                   <span>{n.title}</span>
                   <small>{n.links.length} 链出</small>
+                </button>
+                <button
+                  type="button"
+                  className="rename-note"
+                  title={`重命名 ${n.title}.md`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    void renameNote('diary', n.name, n.title)
+                  }}
+                >
+                  改
                 </button>
               </li>
             ))}
@@ -317,6 +381,17 @@ export default function App() {
                 >
                   删
                 </button>
+                <button
+                  type="button"
+                  className="rename-note"
+                  title={`重命名 ${n.title}.md`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    void renameNote('knowledge', n.name, n.title)
+                  }}
+                >
+                  改
+                </button>
               </li>
             ))}
           </ul>
@@ -356,15 +431,35 @@ export default function App() {
             >
               源码
             </button>
-            {sel?.kind === 'knowledge' && (
+            {sel?.kind === 'diary' && (
               <button
                 type="button"
-                className="toolbar-delete"
-                title="删除当前知识文件"
-                onClick={() => void deleteKnowledge(sel.name, note?.title)}
+                className="toolbar-rename"
+                title="重命名当前日记"
+                onClick={() => void renameNote('diary', sel.name, note?.title)}
               >
-                删除文件
+                重命名
               </button>
+            )}
+            {sel?.kind === 'knowledge' && (
+              <>
+                <button
+                  type="button"
+                  className="toolbar-rename"
+                  title="重命名当前知识文件"
+                  onClick={() => void renameNote('knowledge', sel.name, note?.title)}
+                >
+                  重命名
+                </button>
+                <button
+                  type="button"
+                  className="toolbar-delete"
+                  title="删除当前知识文件"
+                  onClick={() => void deleteKnowledge(sel.name, note?.title)}
+                >
+                  删除文件
+                </button>
+              </>
             )}
           </div>
         </div>
