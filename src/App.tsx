@@ -19,6 +19,15 @@ import {
   upsertSticky,
   type StickyNote,
 } from './lib/sticky'
+import {
+  clampEditorFontSize,
+  EDITOR_FONT_DEFAULT,
+  EDITOR_FONT_MAX,
+  EDITOR_FONT_MIN,
+  EDITOR_FONT_STEP,
+  loadEditorFontSize,
+  saveEditorFontSize,
+} from './lib/editorFontSize'
 import './App.css'
 
 type Sel = { kind: 'diary' | 'knowledge'; name: string }
@@ -37,6 +46,7 @@ export default function App() {
   const [query, setQuery] = useState('')
   const [dirty, setDirty] = useState(false)
   const [addKnowledgeOpen, setAddKnowledgeOpen] = useState(false)
+  const [editorFontSize, setEditorFontSize] = useState(loadEditorFontSize)
   const [outline, setOutline] = useState<OutlineItem[]>([])
   const [activeOutline, setActiveOutline] = useState(-1)
   const [stickies, setStickies] = useState<StickyNote[]>([])
