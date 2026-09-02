@@ -342,7 +342,7 @@ app.post('/api/note', async (req, res) => {
     const { full, title } = safeJoin(kind, name)
     try {
       await fs.access(full)
-      return res.status(409).json({ error: 'already exists', name: title })
+      return res.status(409).json({ error: `already exists: ${title}`, name: title })
     } catch {
       /* create */
     }

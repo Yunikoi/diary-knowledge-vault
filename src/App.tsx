@@ -173,16 +173,63 @@ export default function App() {
   }
 
   const createDiary = async () => {
-    const r = await api.createNote('diary')
-    await refreshTree()
-    await openNote('diary', r.name)
+    const today = new Date().toISOString().slice(0, 10)
+    try {
+      const r = await api.createNote('diary')
+      await refreshTree()
+      await openNote('diary', r.name)
+      setStatus(`已创建日记 ${r.name}.md`)
+    } catch (e) {
+      const msg = String((e as Error).message || e)
+      const exists =
+        /already exists/i.test(msg) ||
+        msg.includes('已存在') ||
+        diary.some((d) => d.name === today)
+
+      if (exists) {
+        const wantAnother = window.confirm(
+          `今日日记「${today}」已存在。\n\n确定：新建另一篇日记\n取消：打开今日日记`,
+        )
+        if (!wantAnother) {
+          await openNote('diary', today)
+          setStatus(`已打开今日日记 ${today}`)
+          return
+        }
+        const raw = window.prompt('新日记文件名（不含 .md）', `${today}-笔记`)
+        const name = String(raw || '')
+          .trim()
+          .replace(/\.md$/i, '')
+        if (!name) {
+          setStatus('已取消创建')
+          return
+        }
+        try {
+          const r = await api.createNote('diary', name)
+          await refreshTree()
+          await openNote('diary', r.name)
+          setStatus(`已创建日记 ${r.name}.md`)
+        } catch (err) {
+          setStatus(`创建失败: ${(err as Error).message}`)
+        }
+        return
+      }
+      setStatus(`创建失败: ${msg}`)
+    }
   }
 
   const createKnowledge = async (payload: { name: string; content?: string }) => {
-    const r = await api.createNote('knowledge', payload.name, payload.content)
-    await refreshTree()
-    await openNote('knowledge', r.name)
-    setStatus(`已创建知识文件 ${r.name}.md`)
+    try {
+      const r = await api.createNote('knowledge', payload.name, payload.content)
+      await refreshTree()
+      await openNote('knowledge', r.name)
+      setStatus(`已创建知识文件 ${r.name}.md`)
+    } catch (e) {
+      const msg = String((e as Error).message || e)
+      if (/already exists/i.test(msg)) {
+        throw new Error(`知识文件「${payload.name}」已存在，请换个名字`)
+      }
+      throw e instanceof Error ? e : new Error(msg)
+    }
   }
 
   const deleteKnowledge = async (name: string, title?: string) => {
