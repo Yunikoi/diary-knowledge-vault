@@ -59,6 +59,9 @@ export const SHORTCUT_SECTIONS: ShortcutSection[] = [
       { keys: 'Ctrl+/', desc: '切换源码 / 所见即所得' },
       { keys: 'Ctrl+Z', desc: '撤销' },
       { keys: 'Ctrl+Shift+Z', desc: '重做' },
+      { keys: 'Alt+=', desc: '增大正文字号' },
+      { keys: 'Alt+-', desc: '减小正文字号' },
+      { keys: 'Alt+0', desc: '恢复默认字号' },
     ],
   },
 ]
