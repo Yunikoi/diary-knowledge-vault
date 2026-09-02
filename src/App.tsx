@@ -7,6 +7,7 @@ import {
 import { AddKnowledgeModal } from './components/AddKnowledgeModal'
 import { KnowledgeTree } from './components/KnowledgeTree'
 import { StickyPopover } from './components/StickyPopover'
+import { ShortcutBooklet } from './components/ShortcutBooklet'
 import {
   extractOutlineFromMarkdown,
   type OutlineItem,
@@ -538,6 +539,8 @@ export default function App() {
           setStickyUi(null)
         }}
       />
+
+      <ShortcutBooklet />
 
       <aside className="right">
         <KnowledgeTree

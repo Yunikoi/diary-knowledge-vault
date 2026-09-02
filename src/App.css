@@ -993,3 +993,150 @@ body {
     display: none;
   }
 }
+
+/* —— 右下角快捷键小册子 —— */
+.shortcut-booklet {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.shortcut-booklet > * {
+  pointer-events: auto;
+}
+
+.shortcut-booklet-fab {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: color-mix(in srgb, var(--panel) 94%, #fff);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.shortcut-booklet-fab:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  color: var(--accent);
+}
+
+.shortcut-booklet-panel {
+  width: min(360px, calc(100vw - 36px));
+  max-height: min(70vh, 560px);
+  display: flex;
+  flex-direction: column;
+  background: color-mix(in srgb, var(--panel) 96%, #fff);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+}
+
+.shortcut-booklet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px 10px 16px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent-soft) 70%, transparent),
+    transparent
+  );
+}
+
+.shortcut-booklet-head strong {
+  display: block;
+  font-size: 14px;
+}
+
+.shortcut-booklet-head p {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.shortcut-booklet-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.shortcut-booklet-close:hover {
+  background: color-mix(in srgb, var(--line) 55%, transparent);
+  color: var(--ink);
+}
+
+.shortcut-booklet-body {
+  padding: 8px 12px 14px;
+  overflow: auto;
+  display: grid;
+  gap: 12px;
+}
+
+.shortcut-booklet-body section h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.shortcut-booklet-body ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.shortcut-booklet-body li {
+  display: grid;
+  grid-template-columns: minmax(108px, auto) 1fr;
+  gap: 10px;
+  align-items: baseline;
+  padding: 5px 6px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.shortcut-booklet-body li:hover {
+  background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+}
+
+.shortcut-booklet-body kbd {
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 2px 6px;
+  white-space: nowrap;
+}
+
+.shortcut-booklet-body li span {
+  color: var(--muted);
+  line-height: 1.4;
+}
