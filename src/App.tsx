@@ -62,6 +62,37 @@ export default function App() {
   const sourceRef = useRef<HTMLTextAreaElement>(null)
   stickiesRef.current = stickies
 
+  const adjustEditorFont = useCallback((delta: number) => {
+    setEditorFontSize((prev) => {
+      const next = clampEditorFontSize(prev + delta)
+      saveEditorFontSize(next)
+      return next
+    })
+  }, [])
+
+  const resetEditorFont = useCallback(() => {
+    setEditorFontSize(EDITOR_FONT_DEFAULT)
+    saveEditorFontSize(EDITOR_FONT_DEFAULT)
+  }, [])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.altKey && !e.ctrlKey && !e.metaKey)) return
+      if (e.key === '=' || e.key === '+') {
+        e.preventDefault()
+        adjustEditorFont(EDITOR_FONT_STEP)
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault()
+        adjustEditorFont(-EDITOR_FONT_STEP)
+      } else if (e.key === '0') {
+        e.preventDefault()
+        resetEditorFont()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [adjustEditorFont, resetEditorFont])
+
   const refreshTree = useCallback(async () => {
     const t = await api.tree()
     setDiary(t.diary)
@@ -462,7 +493,10 @@ export default function App() {
         onCreate={createKnowledge}
       />
 
-      <main className="main">
+      <main
+        className="main"
+        style={{ ['--editor-font-size' as string]: `${editorFontSize}px` }}
+      >
         <div className="toolbar">
           <div className="titl">
             <span className={`pill ${sel?.kind || ''}`}>
@@ -472,6 +506,32 @@ export default function App() {
             {dirty && <em className="dirty">未保存</em>}
           </div>
           <div className="modes">
+            <div className="font-size-control" title="正文字号（Alt+ / Alt- / Alt+0 重置）">
+              <button
+                type="button"
+                aria-label="减小字号"
+                disabled={editorFontSize <= EDITOR_FONT_MIN}
+                onClick={() => adjustEditorFont(-EDITOR_FONT_STEP)}
+              >
+                A−
+              </button>
+              <button
+                type="button"
+                className="font-size-value"
+                title="点击恢复默认 17px"
+                onClick={resetEditorFont}
+              >
+                {editorFontSize}px
+              </button>
+              <button
+                type="button"
+                aria-label="增大字号"
+                disabled={editorFontSize >= EDITOR_FONT_MAX}
+                onClick={() => adjustEditorFont(EDITOR_FONT_STEP)}
+              >
+                A+
+              </button>
+            </div>
             <button
               type="button"
               className={!showSource ? 'on' : ''}
